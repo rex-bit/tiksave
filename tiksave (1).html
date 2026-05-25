@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TikSave — Download Video Tanpa Watermark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f0f8;--muted:#777788;
+  --accent:#fe2c55;--accent2:#25f4ee;--yt:#ff0000;
+  --accent-glow:rgba(254,44,85,0.18);--cyan-glow:rgba(37,244,238,0.10);--yt-glow:rgba(255,0,0,0.15);
+  --radius:14px;--radius-sm:9px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.018) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{max-width:700px;margin:0 auto;padding:0 18px;position:relative;z-index:1}
+
+/* ── HEADER ── */
+header{padding:24px 0 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:21px;font-weight:700;letter-spacing:-.5px}
+.logo .s{color:var(--accent)}.logo .d{color:var(--accent2)}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.pill{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);padding:4px 11px;border-radius:20px}
+
+/* ── PLATFORM TABS ── */
+.platform-tabs{display:flex;gap:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:4px;margin-bottom:28px;margin-top:8px}
+.ptab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 8px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:all .25s;border:none;background:transparent}
+.ptab svg{width:18px;height:18px;flex-shrink:0;transition:all .25s}
+.ptab:hover{color:var(--text)}
+.ptab.active-tt{background:rgba(254,44,85,0.12);color:var(--accent);border:1px solid rgba(254,44,85,0.25)}
+.ptab.active-tt svg{fill:var(--accent)}
+.ptab.active-yt{background:rgba(255,0,0,0.1);color:var(--yt);border:1px solid rgba(255,0,0,0.25)}
+.ptab.active-yt svg{fill:var(--yt)}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:20px 0 24px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;padding:4px 13px;border-radius:20px;margin-bottom:14px;transition:all .3s}
+.hero-tag.tt{color:var(--accent2);background:var(--cyan-glow);border:1px solid rgba(37,244,238,0.22)}
+.hero-tag.yt{color:#ff6b6b;background:rgba(255,0,0,0.08);border:1px solid rgba(255,0,0,0.2)}
+.hero-tag::before{content:'●';font-size:7px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
+.hero h1{font-size:clamp(26px,5.5vw,44px);font-weight:700;line-height:1.1;letter-spacing:-1.5px;margin-bottom:10px;transition:all .3s}
+.hero h1 .hl-tt{color:var(--accent)}
+.hero h1 .hl-yt{color:var(--yt)}
+.hero p{font-size:13px;color:var(--muted);max-width:400px;margin:0 auto 22px;line-height:1.6}
+
+/* ── INPUT ── */
+.input-wrap{position:relative;margin-bottom:8px}
+.input-wrap input{width:100%;padding:14px 116px 14px 46px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'DM Mono',monospace;font-size:12.5px;outline:none;transition:border-color .2s,box-shadow .2s}
+.input-wrap input:focus.tt-focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.input-wrap input:focus.yt-focus{border-color:var(--yt);box-shadow:0 0 0 3px var(--yt-glow)}
+.input-wrap input::placeholder{color:var(--muted);font-size:12px}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:19px;height:19px;opacity:.45;transition:all .3s}
+.btn-go{position:absolute;right:7px;top:50%;transform:translateY(-50%);color:#fff;border:none;border-radius:10px;padding:8px 15px;font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-go.tt{background:var(--accent)}.btn-go.tt:hover{background:#d41f45}
+.btn-go.yt{background:var(--yt)}.btn-go.yt:hover{background:#c00}
+.btn-go:active{transform:translateY(-50%) scale(0.96)}
+.btn-go:disabled{background:#3a3a3a!important;cursor:not-allowed}
+.hint{font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:22px}
+
+/* ── PROXY BAR ── */
+.proxy-bar{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;margin-bottom:12px;font-size:12px;display:none}
+.proxy-bar.show{display:block}
+.proxy-label{color:var(--muted);margin-bottom:5px;font-size:11px}
+.proxy-dots{display:flex;gap:5px;flex-wrap:wrap}
+.pdot{padding:2px 9px;border-radius:20px;font-size:10px;border:1px solid var(--border2);color:var(--muted);transition:all .25s}
+.pdot.trying{border-color:#f5a623;color:#f5a623;background:rgba(245,166,35,0.07)}
+.pdot.ok{border-color:#4cff8f;color:#4cff8f;background:rgba(76,255,143,0.07)}
+.pdot.fail{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,0.07);text-decoration:line-through;opacity:.5}
+
+/* ── STATUS ── */
+#status{text-align:center;font-size:13px;margin-bottom:12px;min-height:18px;color:var(--muted)}
+#status.loading{color:var(--accent2)}
+#status.error{color:var(--accent)}
+#status.success{color:#4cff8f}
+
+/* ── MANUAL BOX ── */
+.manual-box{background:var(--surface2);border:1px solid rgba(245,166,35,0.28);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:14px;display:none}
+.manual-box.show{display:block}
+.manual-box h4{font-size:12px;font-weight:600;color:#f5a623;margin-bottom:7px}
+.manual-box p,.manual-box li{font-size:11.5px;color:var(--muted);line-height:1.7}
+.manual-box ol{padding-left:16px}
+.manual-box a{color:var(--accent2);text-decoration:none;font-weight:600}
+
+/* ── RESULT ── */
+#result{display:none;margin-bottom:36px}
+.result-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
+.video-preview{background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.video-preview img.thumb{width:100%;max-height:320px;object-fit:cover;display:block;opacity:.82}
+.video-preview video{width:100%;max-height:380px;display:block}
+.result-info{padding:15px 17px;border-top:1px solid var(--border)}
+.result-author{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.author-avatar{width:36px;height:36px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;flex-shrink:0}
+.author-name{font-size:13px;font-weight:600}
+.author-nick{font-size:11px;color:var(--muted)}
+.result-desc{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stats-row{display:flex;gap:14px;margin-bottom:13px;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted)}
+.stat-item svg{width:13px;height:13px;fill:var(--muted)}
+.stat-item strong{color:var(--text);font-weight:600}
+.dl-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.btn-dl{flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;transition:all .2s;border:none;position:relative;overflow:hidden}
+.btn-dl svg{width:14px;height:14px;flex-shrink:0}
+.btn-dl.primary{background:var(--accent);color:#fff}.btn-dl.primary:hover{background:#d41f45}
+.btn-dl.primary-yt{background:var(--yt);color:#fff}.btn-dl.primary-yt:hover{background:#c00}
+.btn-dl.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}.btn-dl.secondary:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-dl.mp3{background:var(--surface2);color:var(--accent2);border:1px solid rgba(37,244,238,0.22)}.btn-dl.mp3:hover{background:var(--cyan-glow)}
+.btn-dl.downloading{opacity:.7;pointer-events:none}
+.dl-progress{position:absolute;left:0;top:0;height:100%;background:rgba(255,255,255,0.15);width:0%;transition:width .3s;pointer-events:none}
+
+/* ── HISTORY ── */
+.history-section{margin-bottom:36px;display:none}
+.history-section.show{display:block}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.btn-clear{font-size:11px;color:var(--muted);background:none;border:1px solid var(--border2);border-radius:20px;padding:3px 10px;cursor:pointer;transition:all .2s}
+.btn-clear:hover{color:var(--accent);border-color:var(--accent)}
+.history-list{display:flex;flex-direction:column;gap:7px}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s}
+.history-item:hover{border-color:var(--border2);background:var(--surface2)}
+.h-thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--surface2);flex-shrink:0}
+.h-info{flex:1;min-width:0}
+.h-title{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.h-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.h-platform{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-right:5px}
+.h-platform.tt{background:var(--accent-glow);color:var(--accent)}
+.h-platform.yt{background:var(--yt-glow);color:var(--yt)}
+.h-reuse{font-size:11px;color:var(--muted);flex-shrink:0;padding:4px 9px;border:1px solid var(--border2);border-radius:20px;transition:all .2s}
+.history-item:hover .h-reuse{color:var(--accent2);border-color:var(--accent2)}
+
+/* ── BATCH ── */
+.batch-section{margin-bottom:28px}
+.batch-toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;margin-bottom:10px;user-select:none}
+.batch-toggle svg{width:14px;height:14px;fill:var(--muted);transition:transform .2s}
+.batch-toggle.open svg{transform:rotate(90deg)}
+.batch-area{display:none;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px}
+.batch-area.show{display:block}
+.batch-area textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;resize:vertical;min-height:90px;outline:none;line-height:1.7}
+.batch-area textarea::placeholder{color:var(--muted)}
+.batch-footer{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.batch-footer span{font-size:11px;color:var(--muted);flex:1}
+.btn-batch{background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:600;font-family:'Space Grotesk',sans-serif;cursor:pointer;transition:all .2s}
+.btn-batch:hover{border-color:var(--accent2);color:var(--accent2)}
+.batch-results{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.batch-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px;display:flex;align-items:center;gap:10px;font-size:12px}
+.batch-row .br-url{flex:1;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'DM Mono',monospace;font-size:11px}
+.batch-row .br-status{font-size:11px;white-space:nowrap}
+.batch-row .br-status.ok{color:#4cff8f}
+.batch-row .br-status.err{color:var(--accent)}
+.batch-row .br-status.wait{color:var(--muted)}
+.batch-row .br-status.proc{color:var(--accent2)}
+.br-dl{display:flex;gap:5px;flex-wrap:wrap}
+.br-dl a{font-size:11px;color:var(--accent2);text-decoration:none;border:1px solid rgba(37,244,238,0.2);border-radius:5px;padding:2px 8px;transition:all .2s}
+.br-dl a:hover{background:var(--cyan-glow)}
+
+/* ── CLIPBOARD TOAST ── */
+.clip-toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:10px 16px;font-size:12px;color:var(--text);z-index:999;display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all .35s;max-width:320px}
+.clip-toast.show{transform:translateY(0);opacity:1}
+.clip-toast .ct-link{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip-toast button{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0}
+
+/* ── HOW TO ── */
+.how-section{padding:10px 0 36px}
+.how-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:15px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:480px){.steps{grid-template-columns:1fr}}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-glow);border:1px solid rgba(254,44,85,0.28);color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 7px}
+.step h3{font-size:12px;font-weight:600;margin-bottom:3px}
+.step p{font-size:11px;color:var(--muted);line-height:1.5}
+footer{border-top:1px solid var(--border);padding:16px 0;text-align:center;font-size:11px;color:var(--muted)}
+footer a{color:var(--accent2);text-decoration:none}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(37,244,238,0.25);border-top-color:var(--accent2);border-radius:50%;animation:spin .65s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- CLIPBOARD TOAST -->
+<div class="clip-toast" id="clipToast">
+  📋 Link terdeteksi: <span class="ct-link" id="ctLink"></span>
+  <button onclick="useClipboard()">Pakai</button>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="logo">Tik<span class="s">Save</span><span class="d">.</span></div>
+    <div class="hdr-right">
+      <div class="pill">No Watermark · HD · Free</div>
+    </div>
+  </header>
+
+  <!-- PLATFORM TABS -->
+  <div class="platform-tabs">
+    <button class="ptab active-tt" id="tabTT" onclick="switchPlatform('tt')">
+      <svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+      TikTok
+    </button>
+    <button class="ptab" id="tabYT" onclick="switchPlatform('yt')">
+      <svg viewBox="0 0 24 24" fill="var(--muted)"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+      YouTube
+    </button>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag tt" id="heroTag">Gratis · HD · Tanpa Watermark</div>
+    <h1 id="heroTitle">Download TikTok<br><span class="hl-tt">Tanpa Watermark</span></h1>
+    <p id="heroSub">Paste link video TikTok, langsung download HD. Gratis, tanpa login, tanpa install.</p>
+
+    <div class="input-wrap">
+      <svg class="input-icon" id="inputIcon" viewBox="0 0 24 24" fill="var(--accent)"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg>
+      <input id="urlInput" class="tt-focus" type="text" placeholder="https://www.tiktok.com/@user/video/..." autocomplete="off" spellcheck="false"/>
+      <button class="btn-go tt" id="btnGo" onclick="fetchVideo()">Download</button>
+    </div>
+    <div class="hint" id="hintText">Share → Salin Tautan di TikTok, paste di sini — atau akan terdeteksi otomatis dari clipboard</div>
+  </section>
+
+  <!-- BATCH -->
+  <div class="batch-section">
+    <div class="batch-toggle" id="batchToggle" onclick="toggleBatch()">
+      <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      Download banyak link sekaligus (Batch)
+    </div>
+    <div class="batch-area" id="batchArea">
+      <textarea id="batchInput" placeholder="Paste banyak link di sini, satu link per baris:&#10;https://www.tiktok.com/@user/video/111...&#10;https://www.tiktok.com/@user/video/222...&#10;https://www.youtube.com/watch?v=abc..."></textarea>
+      <div class="batch-footer">
+        <span id="batchCount">0 link terdeteksi</span>
+        <button class="btn-batch" onclick="runBatch()">🚀 Proses Semua</button>
+      </div>
+    </div>
+    <div class="batch-results" id="batchResults"></div>
+  </div>
+
+  <!-- PROXY BAR -->
+  <div class="proxy-bar" id="proxyBar">
+    <div class="proxy-label">Mencoba koneksi...</div>
+    <div class="proxy-dots" id="proxyDots"></div>
+  </div>
+
+  <!-- MANUAL FALLBACK -->
+  <div class="manual-box" id="manualBox">
+    <h4>⚠️ Semua proxy gagal — Solusi Manual</h4>
+    <p>Browser memblokir request langsung. Coba:</p>
+    <ol>
+      <li>Buka <a href="https://www.tikwm.com" target="_blank">tikwm.com</a> atau <a href="https://snaptik.app" target="_blank">snaptik.app</a> langsung</li>
+      <li>Atau untuk YouTube: <a href="https://cobalt.tools" target="_blank">cobalt.tools</a></li>
+      <li>Atau jalankan file ini via <strong>VS Code Live Server</strong> / hosting</li>
+    </ol>
+  </div>
+
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <!-- HISTORY -->
+  <div class="history-section" id="historySection">
+    <div class="section-head">
+      <div class="section-title">Riwayat Download</div>
+      <button class="btn-clear" onclick="clearHistory()">Hapus Semua</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <section class="how-section">
+    <div class="how-title">Cara Pakai</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Copy Link</h3><p>Tap Share di TikTok/YT lalu Salin Tautan — otomatis terdeteksi!</p></div>
+      <div class="step"><div class="step-num">2</div><h3>Klik Download</h3><p>Paste link lalu tekan Download, tunggu sebentar</p></div>
+      <div class="step"><div class="step-num">3</div><h3>Langsung Tersimpan</h3><p>File otomatis terdownload ke perangkat kamu</p></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    TikSave · TikTok: <a href="https://www.tikwm.com" target="_blank">TikWM API</a> · YouTube: <a href="https://cobalt.tools" target="_blank">Cobalt API</a> · Hormati hak cipta kreator.
+  </div>
+</footer>
+
+<script>
+// ── STATE ──
+let currentPlatform = 'tt';
+let clipboardUrl = '';
+let history = JSON.parse(localStorage.getItem('tiksave_history') || '[]');
+
+// ── PROXIES ──
+const PROXIES = [
+  { name:'AllOrigins', wrap:true,  fn: u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}` },
+  { name:'corsproxy',  wrap:false, fn: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
+  { name:'cors.sh',    wrap:false, fn: u => `https://proxy.cors.sh/${u}` },
+  { name:'thingproxy', wrap:false, fn: u => `https://thingproxy.freeboard.io/fetch/${u}` },
+];
+
+const TIKWM = 'https://www.tikwm.com/api/';
+// Cobalt for YouTube
+const COBALT = 'https://api.cobalt.tools/';
+
+// ── PLATFORM SWITCH ──
+function switchPlatform(p) {
+  currentPlatform = p;
+  const isTT = p === 'tt';
+  document.getElementById('tabTT').className = 'ptab' + (isTT ? ' active-tt' : '');
+  document.getElementById('tabYT').className = 'ptab' + (!isTT ? ' active-yt' : '');
+  document.getElementById('tabTT').querySelector('svg').style.fill = isTT ? 'var(--accent)' : 'var(--muted)';
+  document.getElementById('tabYT').querySelector('svg').style.fill = !isTT ? 'var(--yt)' : 'var(--muted)';
+  document.getElementById('heroTag').className = 'hero-tag ' + p;
+  document.getElementById('heroTitle').innerHTML = isTT
+    ? 'Download TikTok<br><span class="hl-tt">Tanpa Watermark</span>'
+    : 'Download YouTube<br><span class="hl-yt">Kualitas HD</span>';
+  document.getElementById('heroSub').textContent = isTT
+    ? 'Paste link video TikTok, langsung download HD. Gratis, tanpa login, tanpa install.'
+    : 'Paste link YouTube, pilih kualitas dan format. Download MP4 atau MP3 gratis.';
+  const inp = document.getElementById('urlInput');
+  inp.placeholder = isTT ? 'https://www.tiktok.com/@user/video/...' : 'https://www.youtube.com/watch?v=...';
+  inp.className = isTT ? 'tt-focus' : 'yt-focus';
+  document.getElementById('btnGo').className = 'btn-go ' + p;
+  document.getElementById('inputIcon').innerHTML = isTT
+    ? '<path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.28 6.28 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/>'
+    : '<path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/>';
+  document.getElementById('inputIcon').style.fill = isTT ? 'var(--accent)' : 'var(--yt)';
+  document.getElementById('hintText').textContent = isTT
+    ? 'Share → Salin Tautan di TikTok, paste di sini — atau akan terdeteksi otomatis dari clipboard'
+    : 'Copy link YouTube lalu paste di sini — atau akan terdeteksi otomatis dari clipboard';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('status').textContent = '';
+  document.getElementById('proxyBar').classList.remove('show');
+  document.getElementById('manualBox').classList.remove('show');
+}
+
+// ── AUTO-DETECT PLATFORM FROM URL ──
+function detectPlatform(url) {
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'yt';
+  if (url.includes('tiktok.com') || url.includes('vm.tiktok.com') || url.includes('vt.tiktok.com')) return 'tt';
+  return null;
+}
+
+// ── CLIPBOARD DETECTION ──
+let lastClipChecked = '';
+async function checkClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text || text === lastClipChecked) return;
+    lastClipChecked = text;
+    const trimmed = text.trim();
+    const p = detectPlatform(trimmed);
+    if (!p) return;
+    clipboardUrl = trimmed;
+    document.getElementById('ctLink').textContent = trimmed.length > 50 ? trimmed.slice(0,50)+'...' : trimmed;
+    const toast = document.getElementById('clipToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 6000);
+  } catch(e) {}
+}
+
+function useClipboard() {
+  if (!clipboardUrl) return;
+  const p = detectPlatform(clipboardUrl);
+  if (p) switchPlatform(p);
+  document.getElementById('urlInput').value = clipboardUrl;
+  document.getElementById('clipToast').classList.remove('show');
+  fetchVideo();
+}
+
+// Auto detect when tab gains focus
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) checkClipboard();
+});
+window.addEventListener('focus', checkClipboard);
+setTimeout(checkClipboard, 800);
+
+// Also detect on paste
+document.getElementById('urlInput').addEventListener('paste', e => {
+  setTimeout(() => {
+    const val = document.getElementById('urlInput').value.trim();
+    const p = detectPlatform(val);
+    if (p && p !== currentPlatform) switchPlatform(p);
+  }, 50);
+});
+
+// ── STATUS ──
+function setStatus(msg, type='') {
+  const el = document.getElementById('status');
+  el.className = type; el.innerHTML = msg;
+}
+function fmt(n) {
+  if (!n) return '0'; n = parseInt(n);
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toLocaleString('id-ID');
+}
+
+// ── PROXY INIT ──
+function initProxyDots() {
+  const bar = document.getElementById('proxyBar');
+  bar.classList.add('show');
+  document.getElementById('proxyDots').innerHTML = PROXIES.map((p,i)=>
+    `<span class="pdot" id="pd${i}">${p.name}</span>`).join('');
+}
+function markDot(i, state) {
+  const el = document.getElementById('pd'+i);
+  if (el) el.className = 'pdot '+state;
+}
+
+// ── FETCH WITH PROXY ──
+async function fetchWithProxy(apiUrl) {
+  for (let i = 0; i < PROXIES.length; i++) {
+    markDot(i, 'trying');
+    setStatus(`<span class="spinner"></span> Mencoba ${PROXIES[i].name}...`, 'loading');
+    try {
+      const proxyUrl = PROXIES[i].fn(apiUrl);
+      const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(9000) });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      if (PROXIES[i].wrap) {
+        const wrapper = await r.json();
+        const inner = JSON.parse(wrapper.contents);
+        if (inner.code !== 0) throw new Error(inner.msg || 'API error');
+        markDot(i,'ok'); return inner.data;
+      } else {
+        const j = await r.json();
+        if (j.code !== undefined && j.code !== 0) throw new Error(j.msg || 'API error');
+        markDot(i,'ok'); return j.data || j;
+      }
+    } catch(e) {
+      console.warn(PROXIES[i].name, e.message);
+      markDot(i,'fail');
+    }
+  }
+  throw new Error('Semua proxy gagal');
+}
+
+// ── COBALT API (YouTube) ──
+async function fetchYouTube(url) {
+  const apiUrl = COBALT;
+  for (let i = 0; i < PROXIES.length; i++) {
+    markDot(i, 'trying');
+    setStatus(`<span class="spinner"></span> Mencoba ${PROXIES[i].name}...`, 'loading');
+    try {
+      // Cobalt needs POST with JSON
+      const body = JSON.stringify({ url, videoQuality: '1080', audioFormat: 'mp3', filenameStyle: 'pretty' });
+      let r;
+      if (PROXIES[i].wrap) {
+        // AllOrigins doesn't support POST well, skip
+        throw new Error('skip');
+      }
+      r = await fetch(PROXIES[i].fn(apiUrl), {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+        body, signal: AbortSignal.timeout(12000)
+      });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const j = await r.json();
+      if (j.status === 'error') throw new Error(j.error?.code || 'Cobalt error');
+      markDot(i,'ok'); return j;
+    } catch(e) {
+      console.warn(PROXIES[i].name, e.message);
+      markDot(i,'fail');
+    }
+  }
+  throw new Error('Semua proxy gagal untuk YouTube');
+}
+
+// ── AUTO DOWNLOAD (blob) ──
+async function autoDownload(url, filename) {
+  try {
+    // Try fetching via allorigins raw for auto download
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(60000) });
+    if (!r.ok) throw new Error('fetch fail');
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    return true;
+  } catch(e) {
+    // Fallback: open in new tab
+    window.open(url, '_blank');
+    return false;
+  }
+}
+
+// ── DOWNLOAD BUTTON HANDLER ──
+async function handleDownload(btn, url, filename) {
+  btn.classList.add('downloading');
+  const orig = btn.innerHTML;
+  btn.innerHTML = `<span class="dl-progress" id="dlprog"></span><span class="spinner"></span> Mengunduh...`;
+  const ok = await autoDownload(url, filename);
+  btn.innerHTML = ok ? '✅ Tersimpan!' : '↗ Buka Tab';
+  setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('downloading'); }, 2500);
+}
+
+// ── HISTORY ──
+function saveHistory(item) {
+  history = [item, ...history.filter(h => h.url !== item.url)].slice(0, 15);
+  localStorage.setItem('tiksave_history', JSON.stringify(history));
+  renderHistory();
+}
+function clearHistory() {
+  history = [];
+  localStorage.removeItem('tiksave_history');
+  renderHistory();
+}
+function renderHistory() {
+  const sec = document.getElementById('historySection');
+  const list = document.getElementById('historyList');
+  if (!history.length) { sec.classList.remove('show'); return; }
+  sec.classList.add('show');
+  list.innerHTML = history.map((h,i) => `
+    <div class="history-item" onclick="reuseHistory(${i})">
+      ${h.thumb ? `<img class="h-thumb" src="${h.thumb}" onerror="this.style.display='none'"/>` : '<div class="h-thumb"></div>'}
+      <div class="h-info">
+        <div class="h-title">
+          <span class="h-platform ${h.platform}">${h.platform.toUpperCase()}</span>${h.title||h.url}
+        </div>
+        <div class="h-meta">${h.time} · ${h.author||''}</div>
+      </div>
+      <span class="h-reuse">↗ Pakai lagi</span>
+    </div>`).join('');
+}
+function reuseHistory(i) {
+  const h = history[i];
+  switchPlatform(h.platform);
+  document.getElementById('urlInput').value = h.url;
+  fetchVideo();
+}
+renderHistory();
+
+// ── MAIN FETCH ──
+async function fetchVideo(urlOverride) {
+  const raw = urlOverride || document.getElementById('urlInput').value.trim();
+  if (!raw) { setStatus('⚠️ Masukkan link dulu!', 'error'); return; }
+
+  // Auto-detect platform
+  const detected = detectPlatform(raw);
+  if (detected && detected !== currentPlatform) switchPlatform(detected);
+
+  const isTT = currentPlatform === 'tt';
+  if (isTT && !raw.includes('tiktok.com')) { setStatus('⚠️ Link harus dari tiktok.com', 'error'); return; }
+  if (!isTT && !raw.includes('youtube') && !raw.includes('youtu.be')) { setStatus('⚠️ Link harus dari YouTube', 'error'); return; }
+
+  const btn = document.getElementById('btnGo');
+  btn.disabled = true;
+  document.getElementById('result').innerHTML = '';
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('manualBox').classList.remove('show');
+  setStatus('<span class="spinner"></span> Menghubungi server...', 'loading');
+  initProxyDots();
+
+  try {
+    if (isTT) {
+      const apiUrl = TIKWM + '?url=' + encodeURIComponent(raw) + '&hd=1';
+      const data = await fetchWithProxy(apiUrl);
+      renderTikTokResult(data, raw);
+      const author = data.author || {};
+      saveHistory({ url: raw, platform:'tt', title: data.title||'', thumb: data.cover||'', author: author.nickname||'', time: new Date().toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'}) });
+    } else {
+      const data = await fetchYouTube(raw);
+      renderYouTubeResult(data, raw);
+      saveHistory({ url: raw, platform:'yt', title: raw, thumb:'', author:'YouTube', time: new Date().toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'}) });
+    }
+    setStatus('✅ Berhasil! Klik tombol untuk download.', 'success');
+  } catch(e) {
+    console.error(e);
+    setStatus('❌ ' + (e.message || 'Gagal, coba lagi.'), 'error');
+    document.getElementById('manualBox').classList.add('show');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── RENDER TIKTOK ──
+function renderTikTokResult(d, srcUrl) {
+  const isImg = d.images && d.images.length > 0;
+  const dlIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>`;
+  const musIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+
+  let preview = '';
+  if (!isImg && d.play) preview = `<video controls poster="${d.cover||''}" style="width:100%;max-height:380px;display:block"><source src="${d.play}"/></video>`;
+  else if (d.cover) preview = `<img class="thumb" src="${d.cover}" style="max-height:300px"/>`;
+
+  const author = d.author || {};
+  const authorHtml = `<div class="result-author">
+    ${author.avatar ? `<img class="author-avatar" src="${author.avatar}" onerror="this.style.display='none'" alt=""/>` : ''}
+    <div><div class="author-name">${author.nickname||'TikTok User'}</div><div class="author-nick">@${author.unique_id||''}</div></div>
+  </div>`;
+
+  const stats = `<div class="stats-row">
+    <div class="stat-item"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><strong>${fmt(d.digg_count)}</strong> suka</div>
+    <div class="stat-item"><svg viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg><strong>${fmt(d.comment_count)}</strong> komentar</div>
+    <div class="stat-item"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg><strong>${fmt(d.share_count)}</strong> share</div>
+  </div>`;
+
+  let btns = '';
+  if (!isImg) {
+    if (d.hdplay) btns += `<button class="btn-dl primary" onclick="handleDownload(this,'${d.hdplay}','tiktok_hd.mp4')">${dlIcon} Video HD</button>`;
+    if (d.play)   btns += `<button class="btn-dl secondary" onclick="handleDownload(this,'${d.play}','tiktok_sd.mp4')">${dlIcon} Video SD</button>`;
+  }
+  if (d.music) btns += `<button class="btn-dl mp3" onclick="handleDownload(this,'${d.music}','tiktok_audio.mp3')">${musIcon} Audio MP3</button>`;
+  if (isImg) d.images.forEach((img,i) => {
+    btns += `<button class="btn-dl secondary" onclick="handleDownload(this,'${img}','tiktok_foto${i+1}.jpg')">${dlIcon} Foto ${i+1}</button>`;
+  });
+  if (!btns) btns = `<p style="color:var(--muted);font-size:12px">Link download tidak tersedia.</p>`;
+
+  const el = document.getElementById('result');
+  el.innerHTML = `<div class="result-card">
+    <div class="video-preview">${preview}</div>
+    <div class="result-info">
+      ${authorHtml}
+      ${d.title ? `<div class="result-desc">${d.title}</div>` : ''}
+      ${stats}
+      <div class="dl-buttons">${btns}</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">💡 Kalau tidak auto-download, klik kanan → Simpan tautan sebagai...</p>
+    </div>
+  </div>`;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── RENDER YOUTUBE ──
+function renderYouTubeResult(d, srcUrl) {
+  const dlIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>`;
+  const musIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+
+  let btns = '';
+  let preview = '';
+
+  // Cobalt returns: { status, url } or { status, picker }
+  if (d.status === 'stream' || d.status === 'redirect') {
+    const url = d.url;
+    btns = `<button class="btn-dl primary-yt" onclick="handleDownload(this,'${url}','youtube_video.mp4')">${dlIcon} Download Video</button>
+            <button class="btn-dl mp3" onclick="handleDownload(this,'${url}','youtube_audio.mp3')">${musIcon} Audio MP3</button>`;
+  } else if (d.status === 'picker' && d.picker) {
+    btns = d.picker.map((item,i) =>
+      `<button class="btn-dl ${i===0?'primary-yt':'secondary'}" onclick="handleDownload(this,'${item.url}','youtube_${item.type||i}.mp4')">${dlIcon} ${item.quality||'Opsi '+(i+1)}</button>`
+    ).join('');
+  } else {
+    // Cobalt failed or returned something else — show direct link
+    btns = `<a class="btn-dl primary-yt" href="https://cobalt.tools/#${encodeURIComponent(srcUrl)}" target="_blank">${dlIcon} Buka di Cobalt.tools</a>
+            <a class="btn-dl secondary" href="https://y2mate.guru/youtube/${encodeURIComponent(srcUrl)}" target="_blank">${dlIcon} Coba Y2Mate</a>`;
+  }
+
+  const el = document.getElementById('result');
+  el.innerHTML = `<div class="result-card">
+    <div class="result-info" style="border-top:none">
+      <div class="result-author">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--yt-glow);display:flex;align-items:center;justify-content:center;border:2px solid var(--yt)">
+          <svg viewBox="0 0 24 24" fill="var(--yt)" width="18" height="18"><path d="M23.495 6.205a3.007 3.007 0 00-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 00.527 6.205a31.247 31.247 0 00-.522 5.805 31.247 31.247 0 00.522 5.783 3.007 3.007 0 002.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 002.088-2.088 31.247 31.247 0 00.5-5.783 31.247 31.247 0 00-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        </div>
+        <div><div class="author-name">YouTube Video</div><div class="author-nick">${srcUrl.length>50?srcUrl.slice(0,50)+'...':srcUrl}</div></div>
+      </div>
+      <div class="dl-buttons">${btns}</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">💡 Kalau tidak auto-download, klik kanan → Simpan tautan sebagai... atau coba cobalt.tools</p>
+    </div>
+  </div>`;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── BATCH ──
+function toggleBatch() {
+  const area = document.getElementById('batchArea');
+  const toggle = document.getElementById('batchToggle');
+  const showing = area.classList.toggle('show');
+  toggle.classList.toggle('open', showing);
+}
+document.getElementById('batchInput').addEventListener('input', () => {
+  const lines = document.getElementById('batchInput').value.split('\n').map(l=>l.trim()).filter(l=>l && (l.includes('tiktok.com')||l.includes('youtube')||l.includes('youtu.be')));
+  document.getElementById('batchCount').textContent = lines.length + ' link terdeteksi';
+});
+
+async function runBatch() {
+  const lines = document.getElementById('batchInput').value.split('\n').map(l=>l.trim()).filter(l=>l && (l.includes('tiktok.com')||l.includes('youtube')||l.includes('youtu.be')));
+  if (!lines.length) { alert('Belum ada link valid!'); return; }
+  const res = document.getElementById('batchResults');
+  res.innerHTML = lines.map((url,i) =>
+    `<div class="batch-row" id="br${i}">
+      <span class="br-url">${url}</span>
+      <span class="br-status wait" id="brs${i}">Menunggu...</span>
+      <div class="br-dl" id="brd${i}"></div>
+    </div>`).join('');
+
+  for (let i = 0; i < lines.length; i++) {
+    const url = lines[i];
+    document.getElementById('brs'+i).className = 'br-status proc';
+    document.getElementById('brs'+i).textContent = '⏳ Proses...';
+    const p = detectPlatform(url);
+    try {
+      let dlUrl = '';
+      if (p === 'tt') {
+        const apiUrl = TIKWM + '?url=' + encodeURIComponent(url) + '&hd=1';
+        const data = await fetchWithProxy(apiUrl);
+        dlUrl = data.hdplay || data.play || '';
+        document.getElementById('brs'+i).className = 'br-status ok';
+        document.getElementById('brs'+i).textContent = '✅ OK';
+        document.getElementById('brd'+i).innerHTML =
+          (data.hdplay ? `<a href="${data.hdplay}" target="_blank" download="tiktok_hd_${i+1}.mp4">HD</a>` : '') +
+          (data.play ? `<a href="${data.play}" target="_blank" download="tiktok_sd_${i+1}.mp4">SD</a>` : '') +
+          (data.music ? `<a href="${data.music}" target="_blank" download="tiktok_mp3_${i+1}.mp3">MP3</a>` : '');
+      } else if (p === 'yt') {
+        const data = await fetchYouTube(url);
+        const ytUrl = data.url || (data.picker && data.picker[0] && data.picker[0].url) || '';
+        document.getElementById('brs'+i).className = 'br-status ok';
+        document.getElementById('brs'+i).textContent = '✅ OK';
+        document.getElementById('brd'+i).innerHTML = ytUrl
+          ? `<a href="${ytUrl}" target="_blank" download="youtube_${i+1}.mp4">Download</a>`
+          : `<a href="https://cobalt.tools" target="_blank">Cobalt</a>`;
+      }
+    } catch(e) {
+      document.getElementById('brs'+i).className = 'br-status err';
+      document.getElementById('brs'+i).textContent = '❌ Gagal';
+    }
+    await new Promise(r => setTimeout(r, 800));
+  }
+}
+
+// ── KEYBOARD ──
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchVideo();
+});
+</script>
+</body>
+</html>
